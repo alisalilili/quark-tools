@@ -1,0 +1,541 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>夸克 AI 对话链接生成工具</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 16px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            overflow: hidden;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+
+        .header h1 {
+            font-size: 28px;
+            margin-bottom: 10px;
+        }
+
+        .header p {
+            opacity: 0.9;
+            font-size: 14px;
+        }
+
+        .form-container {
+            padding: 30px;
+        }
+
+        .form-group {
+            margin-bottom: 25px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            color: #333;
+            font-weight: 600;
+            font-size: 14px;
+        }
+
+        .form-group label .required {
+            color: #e74c3c;
+            margin-left: 4px;
+        }
+
+        .form-group label .hint {
+            font-weight: normal;
+            color: #999;
+            font-size: 12px;
+            margin-left: 8px;
+        }
+
+        .form-group input[type="text"],
+        .form-group textarea {
+            width: 100%;
+            padding: 12px 16px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 14px;
+            transition: all 0.3s;
+            font-family: inherit;
+        }
+
+        .form-group input[type="text"]:focus,
+        .form-group textarea:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+
+        .form-group textarea {
+            resize: vertical;
+            min-height: 80px;
+        }
+
+        .radio-group {
+            display: flex;
+            gap: 20px;
+            flex-wrap: wrap;
+        }
+
+        .radio-option {
+            display: flex;
+            align-items: center;
+            padding: 10px 16px;
+            background: #f8f9fa;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s;
+            border: 2px solid transparent;
+        }
+
+        .radio-option:hover {
+            background: #eef0f5;
+        }
+
+        .radio-option.active {
+            background: #e8ebff;
+            border-color: #667eea;
+        }
+
+        .radio-option input[type="radio"] {
+            margin-right: 8px;
+            accent-color: #667eea;
+        }
+
+        .checkbox-group {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .checkbox-group input[type="checkbox"] {
+            width: 18px;
+            height: 18px;
+            accent-color: #667eea;
+        }
+
+        .btn {
+            width: 100%;
+            padding: 14px 24px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            margin-bottom: 15px;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(102, 126, 234, 0.4);
+        }
+
+        .btn:active {
+            transform: translateY(0);
+        }
+
+        .btn-secondary {
+            background: #f0f0f0;
+            color: #333;
+        }
+
+        .btn-secondary:hover {
+            background: #e0e0e0;
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.1);
+        }
+
+        .result-section {
+            background: #f8f9fa;
+            border-radius: 12px;
+            padding: 25px;
+            margin-top: 30px;
+            display: none;
+        }
+
+        .result-section.show {
+            display: block;
+        }
+
+        .result-section h3 {
+            color: #333;
+            margin-bottom: 15px;
+            font-size: 18px;
+        }
+
+        .result-box {
+            background: white;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            padding: 15px;
+            margin-bottom: 15px;
+            word-break: break-all;
+            font-family: 'Courier New', monospace;
+            font-size: 13px;
+            line-height: 1.6;
+            max-height: 200px;
+            overflow-y: auto;
+        }
+
+        .result-label {
+            color: #666;
+            font-size: 12px;
+            margin-bottom: 5px;
+            font-weight: 600;
+        }
+
+        .copy-btn {
+            background: #667eea;
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 13px;
+            font-weight: 600;
+            transition: all 0.3s;
+        }
+
+        .copy-btn:hover {
+            background: #5568d3;
+        }
+
+        .copy-btn.copied {
+            background: #27ae60;
+        }
+
+        .info-box {
+            background: #e8f4fd;
+            border-left: 4px solid #3498db;
+            padding: 15px;
+            border-radius: 8px;
+            margin-top: 20px;
+        }
+
+        .info-box h4 {
+            color: #2980b9;
+            margin-bottom: 10px;
+            font-size: 14px;
+        }
+
+        .info-box ul {
+            list-style: none;
+            padding-left: 0;
+        }
+
+        .info-box li {
+            color: #555;
+            font-size: 13px;
+            padding: 5px 0;
+            padding-left: 20px;
+            position: relative;
+        }
+
+        .info-box li:before {
+            content: "•";
+            color: #3498db;
+            position: absolute;
+            left: 0;
+        }
+
+        .info-box a {
+            color: #3498db;
+            text-decoration: none;
+        }
+
+        .info-box a:hover {
+            text-decoration: underline;
+        }
+
+        .version-info {
+            background: #fff3cd;
+            border-left: 4px solid #ffc107;
+            padding: 12px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            font-size: 13px;
+            color: #856404;
+        }
+
+        .json-preview {
+            background: #2d3436;
+            color: #a29bfe;
+            padding: 15px;
+            border-radius: 8px;
+            font-family: 'Courier New', monospace;
+            font-size: 12px;
+            margin-bottom: 15px;
+            white-space: pre-wrap;
+            word-break: break-all;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🔗 夸克 AI 对话链接生成工具</h1>
+            <p>快速生成夸克 AI 对话唤起链接</p>
+        </div>
+
+        <div class="form-container">
+            <div class="version-info">
+                <strong> 版本要求：</strong>iOS 7.17.3+ | Android 7.17.2+
+            </div>
+
+            <form id="linkForm">
+                <div class="form-group">
+                    <label for="query">
+                        发送内容 (query)
+                        <span class="required">*</span>
+                        <span class="hint">用户要询问或生成的内容</span>
+                    </label>
+                    <textarea 
+                        id="query" 
+                        placeholder="例如：生成一份 AI 行业报告"
+                        required
+                    ></textarea>
+                </div>
+
+                <div class="form-group">
+                    <label for="entry">
+                        来源标识 (entry)
+                        <span class="required">*</span>
+                        <span class="hint">需要修改的来源标识</span>
+                    </label>
+                    <input 
+                        type="text" 
+                        id="entry" 
+                        value="pushnews"
+                        placeholder="例如：pushnews"
+                        required
+                    />
+                </div>
+
+                <div class="form-group">
+                    <label>
+                        搜索模式 (search_mode)
+                        <span class="hint">选择 AI 对话模式</span>
+                    </label>
+                    <div class="radio-group">
+                        <label class="radio-option">
+                            <input type="radio" name="search_mode" value="none" checked>
+                            <span>默认模式 (none)</span>
+                        </label>
+                        <label class="radio-option">
+                            <input type="radio" name="search_mode" value="ds">
+                            <span>深度思考 (ds)</span>
+                        </label>
+                        <label class="radio-option">
+                            <input type="radio" name="search_mode" value="drs">
+                            <span>深度研究 (drs)</span>
+                        </label>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label>
+                        对话记忆 (transfer_memory_info)
+                        <span class="hint">控制是否开启新对话</span>
+                    </label>
+                    <div class="checkbox-group">
+                        <input type="checkbox" id="newConversation" checked>
+                        <label for="newConversation">开启新对话（包含此字段）</label>
+                    </div>
+                    <p style="color: #999; font-size: 12px; margin-top: 8px;">
+                        ℹ️ 勾选：新启对话 | 不勾选：在用户最后的对话继续
+                    </p>
+                </div>
+
+                <div class="form-group">
+                    <label>
+                        直接发送 (query_info.direct_send)
+                        <span class="hint">iOS 新版特性</span>
+                    </label>
+                    <div class="checkbox-group">
+                        <input type="checkbox" id="directSend" checked>
+                        <label for="directSend">启用直接发送（不在输入栏显示）</label>
+                    </div>
+                    <p style="color: #999; font-size: 12px; margin-top: 8px;">
+                        ℹ️ iOS 新版支持直接发送，旧版和安卓兼容此参数
+                    </p>
+                </div>
+
+                <button type="submit" class="btn">
+                    ✨ 生成链接
+                </button>
+
+                <button type="button" class="btn btn-secondary" onclick="resetForm()">
+                    🔄 重置表单
+                </button>
+            </form>
+
+            <div id="resultSection" class="result-section">
+                <h3> 生成结果</h3>
+                
+                <div class="result-label">JSON 数据预览：</div>
+                <div class="json-preview" id="jsonPreview"></div>
+
+                <div class="result-label">URL Encode 编码：</div>
+                <div class="result-box" id="encodedResult"></div>
+                <button class="copy-btn" onclick="copyEncoded()" id="copyEncodedBtn">复制编码</button>
+
+                <div class="result-label" style="margin-top: 15px;">完整链接：</div>
+                <div class="result-box" id="fullLink"></div>
+                <button class="copy-btn" onclick="copyFullLink()" id="copyFullLinkBtn">复制链接</button>
+
+                <div class="info-box">
+                    <h4>🛠️ 使用说明</h4>
+                    <ul>
+                        <li>复制上方生成的完整链接即可使用</li>
+                        <li>如需解码，可使用在线工具：<a href="https://www.urldecoder.cn/" target="_blank">urldecoder.cn</a></li>
+                        <li>链接可在 Safari 或其他浏览器中打开，唤起夸克 App</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Radio button styling
+        document.querySelectorAll('input[name="search_mode"]').forEach(radio => {
+            radio.addEventListener('change', function() {
+                document.querySelectorAll('.radio-option').forEach(opt => {
+                    opt.classList.remove('active');
+                });
+                if (this.checked) {
+                    this.closest('.radio-option').classList.add('active');
+                }
+            });
+        });
+
+        // Initialize first radio as active
+        document.querySelector('input[name="search_mode"]:checked').closest('.radio-option').classList.add('active');
+
+        function generateLink(formData) {
+            const jsonObj = {
+                query: formData.query,
+                search_mode: formData.search_mode,
+                entry: formData.entry,
+                transfer_memory_info: formData.newConversation ? "{}" : undefined,
+                query_info: formData.directSend ? { direct_send: "true" } : undefined
+            };
+
+            // Remove undefined properties
+            Object.keys(jsonObj).forEach(key => {
+                if (jsonObj[key] === undefined) {
+                    delete jsonObj[key];
+                }
+            });
+
+            const jsonString = JSON.stringify(jsonObj);
+            const encoded = encodeURIComponent(jsonString);
+            const baseUrl = "http://www.myquark.cn";
+            const fullLink = `${baseUrl}?qk_biz=ai_chat&qk_module=home&qk_params=${encoded}&launch_mode=single_top`;
+
+            return {
+                json: jsonObj,
+                jsonString: jsonString,
+                encoded: encoded,
+                fullLink: fullLink
+            };
+        }
+
+        function displayResult(result) {
+            document.getElementById('jsonPreview').textContent = JSON.stringify(result.json, null, 2);
+            document.getElementById('encodedResult').textContent = result.encoded;
+            document.getElementById('fullLink').textContent = result.fullLink;
+            document.getElementById('resultSection').classList.add('show');
+            
+            // Reset copy buttons
+            document.getElementById('copyEncodedBtn').textContent = '复制编码';
+            document.getElementById('copyEncodedBtn').classList.remove('copied');
+            document.getElementById('copyFullLinkBtn').textContent = '复制链接';
+            document.getElementById('copyFullLinkBtn').classList.remove('copied');
+        }
+
+        function copyToClipboard(text, btnId) {
+            navigator.clipboard.writeText(text).then(() => {
+                const btn = document.getElementById(btnId);
+                btn.textContent = '✓ 已复制';
+                btn.classList.add('copied');
+                setTimeout(() => {
+                    btn.textContent = btn.id === 'copyEncodedBtn' ? '复制编码' : '复制链接';
+                    btn.classList.remove('copied');
+                }, 2000);
+            }).catch(err => {
+                alert('复制失败，请手动复制');
+            });
+        }
+
+        function copyEncoded() {
+            const text = document.getElementById('encodedResult').textContent;
+            copyToClipboard(text, 'copyEncodedBtn');
+        }
+
+        function copyFullLink() {
+            const text = document.getElementById('fullLink').textContent;
+            copyToClipboard(text, 'copyFullLinkBtn');
+        }
+
+        function resetForm() {
+            document.getElementById('linkForm').reset();
+            document.getElementById('resultSection').classList.remove('show');
+            
+            // Reset radio button styling
+            document.querySelectorAll('.radio-option').forEach(opt => {
+                opt.classList.remove('active');
+            });
+            document.querySelector('input[name="search_mode"]:checked').closest('.radio-option').classList.add('active');
+        }
+
+        document.getElementById('linkForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            const formData = {
+                query: document.getElementById('query').value.trim(),
+                entry: document.getElementById('entry').value.trim(),
+                search_mode: document.querySelector('input[name="search_mode"]:checked').value,
+                newConversation: document.getElementById('newConversation').checked,
+                directSend: document.getElementById('directSend').checked
+            };
+
+            if (!formData.query || !formData.entry) {
+                alert('请填写必填项');
+                return;
+            }
+
+            const result = generateLink(formData);
+            displayResult(result);
+            
+            // Scroll to result
+            document.getElementById('resultSection').scrollIntoView({ behavior: 'smooth' });
+        });
+    </script>
+</body>
+</html>
