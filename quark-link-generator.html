@@ -326,15 +326,23 @@
                     <label for="entry">
                         来源标识 (entry)
                         <span class="required">*</span>
-                        <span class="hint">需要修改的来源标识</span>
+                        <span class="hint">选择或输入来源标识</span>
                     </label>
+                    <select id="entrySelect" style="width: 100%; padding: 12px 16px; border: 2px solid #e0e0e0; border-radius: 8px; font-size: 14px; margin-bottom: 10px; background: white;">
+                        <option value="">请选择来源（或手动输入）</option>
+                        <option value="doodle">doodle - doodle</option>
+                        <option value="grzx">个人中心 banner - grzx</option>
+                        <option value="pushnews">pushnews</option>
+                    </select>
                     <input 
                         type="text" 
                         id="entry" 
-                        value="pushnews"
-                        placeholder="例如：pushnews"
-                        required
+                        value=""
+                        placeholder="手动输入来源标识，如：pushnews"
                     />
+                    <p style="color: #999; font-size: 12px; margin-top: 8px;">
+                        ℹ️ 从下拉框选择或直接在下方输入框填写
+                    </p>
                 </div>
 
                 <div class="form-group">
@@ -386,6 +394,20 @@
                     </p>
                 </div>
 
+                <div class="form-group">
+                    <label>
+                        返回首页 (pop_to_home)
+                        <span class="hint">控制页面跳转行为</span>
+                    </label>
+                    <div class="checkbox-group">
+                        <input type="checkbox" id="popToHome" checked>
+                        <label for="popToHome">返回首页（true）</label>
+                    </div>
+                    <p style="color: #999; font-size: 12px; margin-top: 8px;">
+                        ℹ️ 勾选：返回首页 | 不勾选：返回上一级 (false)
+                    </p>
+                </div>
+
                 <button type="submit" class="btn">
                     ✨ 生成链接
                 </button>
@@ -422,6 +444,20 @@
     </div>
 
     <script>
+        // Entry select dropdown handling
+        const entrySelect = document.getElementById('entrySelect');
+        const entryInput = document.getElementById('entry');
+        
+        entrySelect.addEventListener('change', function() {
+            if (this.value) {
+                entryInput.value = this.value;
+            }
+        });
+
+        entryInput.addEventListener('input', function() {
+            entrySelect.value = '';
+        });
+
         // Radio button styling
         document.querySelectorAll('input[name="search_mode"]').forEach(radio => {
             radio.addEventListener('change', function() {
@@ -443,7 +479,8 @@
                 search_mode: formData.search_mode,
                 entry: formData.entry,
                 transfer_memory_info: formData.newConversation ? "{}" : undefined,
-                query_info: formData.directSend ? { direct_send: "true" } : undefined
+                query_info: formData.directSend ? { direct_send: "true" } : undefined,
+                pop_to_home: formData.popToHome ? "true" : "false"
             };
 
             // Remove undefined properties
@@ -507,6 +544,9 @@
             document.getElementById('linkForm').reset();
             document.getElementById('resultSection').classList.remove('show');
             
+            // Reset entry select
+            document.getElementById('entrySelect').value = '';
+            
             // Reset radio button styling
             document.querySelectorAll('.radio-option').forEach(opt => {
                 opt.classList.remove('active');
@@ -522,7 +562,8 @@
                 entry: document.getElementById('entry').value.trim(),
                 search_mode: document.querySelector('input[name="search_mode"]:checked').value,
                 newConversation: document.getElementById('newConversation').checked,
-                directSend: document.getElementById('directSend').checked
+                directSend: document.getElementById('directSend').checked,
+                popToHome: document.getElementById('popToHome').checked
             };
 
             if (!formData.query || !formData.entry) {
