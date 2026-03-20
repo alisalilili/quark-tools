@@ -326,22 +326,24 @@
                     <label for="entry">
                         来源标识 (entry)
                         <span class="required">*</span>
-                        <span class="hint">选择或输入来源标识</span>
+                        <span class="hint">选择来源或自定义</span>
                     </label>
                     <select id="entrySelect" style="width: 100%; padding: 12px 16px; border: 2px solid #e0e0e0; border-radius: 8px; font-size: 14px; margin-bottom: 10px; background: white;">
-                        <option value="">请选择来源（或手动输入）</option>
-                        <option value="doodle">doodle - doodle</option>
-                        <option value="grzx">个人中心 banner - grzx</option>
+                        <option value="">请选择来源</option>
+                        <option value="doodle">doodle（doodle）</option>
+                        <option value="grzx">个人中心 banner（grzx）</option>
                         <option value="pushnews">pushnews</option>
+                        <option value="custom">─── 自定义 ───</option>
                     </select>
                     <input 
                         type="text" 
-                        id="entry" 
+                        id="entryInput" 
                         value=""
-                        placeholder="手动输入来源标识，如：pushnews"
+                        placeholder="输入自定义来源标识"
+                        style="display: none;"
                     />
                     <p style="color: #999; font-size: 12px; margin-top: 8px;">
-                        ℹ️ 从下拉框选择或直接在下方输入框填写
+                        ℹ️ 常用来源：doodle、个人中心 banner、pushnews；选择"自定义"可输入其他来源
                     </p>
                 </div>
 
@@ -444,18 +446,20 @@
     </div>
 
     <script>
-        // Entry select dropdown handling
+        // Entry select/input handling
         const entrySelect = document.getElementById('entrySelect');
-        const entryInput = document.getElementById('entry');
+        const entryInput = document.getElementById('entryInput');
         
         entrySelect.addEventListener('change', function() {
-            if (this.value) {
-                entryInput.value = this.value;
+            if (this.value === 'custom') {
+                // Show input field for custom value
+                entryInput.style.display = 'block';
+                entryInput.focus();
+            } else if (this.value) {
+                // Hide input field when a preset is selected
+                entryInput.style.display = 'none';
+                entryInput.value = '';
             }
-        });
-
-        entryInput.addEventListener('input', function() {
-            entrySelect.value = '';
         });
 
         // Radio button styling
@@ -503,6 +507,14 @@
             };
         }
 
+        function getEntryValue() {
+            const selectValue = entrySelect.value;
+            if (selectValue === 'custom') {
+                return entryInput.value.trim();
+            }
+            return selectValue;
+        }
+
         function displayResult(result) {
             document.getElementById('jsonPreview').textContent = JSON.stringify(result.json, null, 2);
             document.getElementById('encodedResult').textContent = result.encoded;
@@ -544,8 +556,10 @@
             document.getElementById('linkForm').reset();
             document.getElementById('resultSection').classList.remove('show');
             
-            // Reset entry select
-            document.getElementById('entrySelect').value = '';
+            // Reset entry select and hide input
+            entrySelect.value = '';
+            entryInput.style.display = 'none';
+            entryInput.value = '';
             
             // Reset radio button styling
             document.querySelectorAll('.radio-option').forEach(opt => {
@@ -557,9 +571,11 @@
         document.getElementById('linkForm').addEventListener('submit', function(e) {
             e.preventDefault();
             
+            const entryValue = getEntryValue();
+            
             const formData = {
                 query: document.getElementById('query').value.trim(),
-                entry: document.getElementById('entry').value.trim(),
+                entry: entryValue,
                 search_mode: document.querySelector('input[name="search_mode"]:checked').value,
                 newConversation: document.getElementById('newConversation').checked,
                 directSend: document.getElementById('directSend').checked,
